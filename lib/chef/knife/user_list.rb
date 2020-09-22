@@ -29,9 +29,19 @@ class Chef
         long: "--with-uri",
         description: "Show corresponding URIs."
 
+      option :global,
+        short: "-g",
+        long: "--global",
+        description: "List all global users."
+
       def run
-        results = root_rest.get("users")
-        output(format_list_for_display(results))
+        if config[:global]
+          results = format_list_for_display(root_rest.get("users"))
+        else
+          user_arr = rest.get("users")
+          results = user_arr.map { |user| user["user"]["username"] }
+        end
+        output(results)
       end
     end
   end
