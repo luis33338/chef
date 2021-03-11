@@ -35,6 +35,16 @@ begin
     end
   end
 
+  task :knife_specs do
+      Dir.chdir(gem) do
+        Bundler.with_unbundled_env do
+          sh("bundle install --jobs=3 --retry=3")
+          sh("bundle exec rake spec")
+        end
+      end
+
+  end
+
   task default: :spec
 
   task spec: :component_specs
