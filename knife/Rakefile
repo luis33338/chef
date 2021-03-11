@@ -16,26 +16,23 @@
 
 require "rubygems"
 require "bundler/gem_tasks"
-
 Bundler::GemHelper.install_tasks
 
 begin
   require "rspec/core/rake_task"
-  namespace :spec do
-    desc "Run knife specs" do
-      RSpec::Core::RakeTask.new(sub) do |t|
-        t.verbose = true
-        t.rspec_opts = %w{--profile}
-        t.pattern =
-          FileList["spec/unit/knife/**/*_spec.rb"]  +
-          FileList["spec/unit/knife_spec.rb"]  +
-          FileList["spec/unit/application/knife_spec.rb"]  +
-          FileList["spec/integration/knife/*_spec.rb"]  +
-          FileList["spec/functional/knife/*_spec.rb"]
-      end
-    end
 
-    end
+  desc "Run all knife specs"
+  RSpec::Core::RakeTask.new(:speca) do |t|
+    t.verbose = true
+    t.rspec_opts = %w{--profile}
+    t.pattern = FileList["../spec/unit/knife/**/*_spec.rb"]  +
+      FileList["../spec/unit/knife_spec.rb"]  +
+      FileList["../spec/unit/application/knife_spec.rb"]  +
+      FileList["../spec/integration/knife/*_spec.rb"]  +
+      FileList["../spec/functional/knife/*_spec.rb"]
+    t.ruby_opts = "-I ../spec"
+
+  end
 rescue LoadError
   puts "rspec not available. bundle install first to make sure all dependencies are installed."
 end
