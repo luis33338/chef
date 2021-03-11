@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-require "spec_helper"
+require "knife_spec_helper"
 
 describe Chef::Knife::SubcommandLoader::GemGlobLoader do
   let(:loader) { Chef::Knife::SubcommandLoader::GemGlobLoader.new(File.join(CHEF_SPEC_DATA, "knife-site-subcommands")) }

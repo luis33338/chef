@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-require "spec_helper"
+require "knife_spec_helper"
 require "chef/knife/supermarket_share"
 require "chef/cookbook_uploader"
 require "chef/knife/core/cookbook_site_streaming_uploader"

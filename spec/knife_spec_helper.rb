@@ -19,31 +19,33 @@
 # Add it to one of the files in spec/support
 
 # Abuse ruby's constant lookup to avoid undefined constant errors
-module Shell
-  JUST_TESTING_MOVE_ALONG = true unless defined? JUST_TESTING_MOVE_ALONG
-  IRB = nil unless defined? IRB
-end
 
 $LOAD_PATH.unshift File.expand_path("..", __dir__)
-
-$LOAD_PATH.unshift File.expand_path("../chef-config/lib", __dir__)
-$LOAD_PATH.unshift File.expand_path("../chef-utils/lib", __dir__)
+$LOAD_PATH.unshift File.expand_path("../../chef-config/lib", __dir__)
+$LOAD_PATH.unshift File.expand_path("../../chef-utils/lib", __dir__)
 
 require "rubygems"
 require "rspec/mocks"
+require "rspec/matchers"
 require "rexml/document"
 require "webmock/rspec"
 
-require "chef"
+require "chef/knife"
 
+Dir["lib/chef/knife/**/*.rb"]
+  .map { |f| f.gsub("lib/", "") }
+  .map { |f| f.gsub(/\.rb$/, "") }
+  .each { |f| require f }
 
 require "chef/resource_resolver"
 require "chef/provider_resolver"
 
 require "chef/mixins"
 require "chef/dsl"
-require "chef/application"
-require "chef/applications"
+
+# MPTD Hopefully not, this is a mess to unwind:
+# require "chef/application"
+# require "chef/applications"
 
 require "chef/shell"
 require "chef/util/file_edit"
@@ -57,14 +59,13 @@ require "chef/api_client_v1"
 require "chef/mixin/versioned_api"
 require "chef/server_api_versions"
 
-
-
 if ENV["CHEF_FIPS"] == "1"
   Chef::Config.init_openssl
 end
 
 # If you want to load anything into the testing environment
 # without versioning it, add it to spec/support/local_gems.rb
+# #MPTD needed now?
 require "spec/support/local_gems" if File.exist?(File.join(File.dirname(__FILE__), "support", "local_gems.rb"))
 
 # Explicitly require spec helpers that need to load first
@@ -109,7 +110,7 @@ class UnexpectedSystemExit < RuntimeError
 end
 
 RSpec.configure do |config|
-  config.include(Matchers)
+  config.include(RSpec::Matchers)
   config.include(MockShellout::RSpec)
   config.filter_run focus: true
   config.filter_run_excluding external: true
@@ -140,6 +141,8 @@ RSpec.configure do |config|
   config.filter_run_excluding not_supported_on_windows: true if windows?
   config.filter_run_excluding not_supported_on_macos: true if macos?
   config.filter_run_excluding macos_only: true unless macos?
+  config.filter_run_excluding macos_1013: true unless macos_1013?
+  config.filter_run_excluding macos_gte_1014: true unless macos_gte_1014?
   config.filter_run_excluding not_supported_on_aix: true if aix?
   config.filter_run_excluding not_supported_on_solaris: true if solaris?
   config.filter_run_excluding not_supported_on_gce: true if gce?
