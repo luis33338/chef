@@ -62,9 +62,33 @@ describe Chef::Knife::SubcommandLoader::GemGlobLoader do
     expect(loader).to receive(:find_subcommands_via_dirglob).and_return({})
     expect(loader.subcommand_files.select { |file| file.include?("knife-ec2") }.sort).to eq(gem_files)
   end
+  it "excludes knife version file if loaded from a gem" do
+    gems = [ double("knife-ec2-0.5.12") ]
+    gem_files = [
+      "/usr/lib/ruby/gems/knife-ec2-0.5.12/lib/chef/knife/ec2_base.rb",
+      "/usr/lib/ruby/gems/knife-ec2-0.5.12/lib/chef/knife/ec2_otherstuff.rb",
+    ]
+    expect($LOAD_PATH).to receive(:map).and_return([])
+    if Gem::Specification.respond_to? :latest_specs
+      expect(Gem::Specification).to receive(:latest_specs).with(true).and_return(gems)
+      expect(gems[0]).to receive(:matches_for_glob).with(%r{chef/knife/\*\.rb\{(.*),\.rb,(.*)\}}).and_return(gem_files)
+    else
+      expect(Gem.source_index).to receive(:latest_specs).with(true).and_return(gems)
+      expect(gems[0]).to receive(:require_paths).twice.and_return(["lib"])
+      expect(gems[0]).to receive(:full_gem_path).and_return("/usr/lib/ruby/gems/knife-ec2-0.5.12")
+      expect(Dir).to receive(:[]).with("/usr/lib/ruby/gems/knife-ec2-0.5.12/lib/chef/knife/*.rb").and_return(gem_files)
+    end
+    expect(loader).to receive(:find_subcommands_via_dirglob).and_return({})
+    expect(loader.subcommand_files.select { |file| file.include?("knife-ec2") }.sort).to eq(gem_files)
+  end
 
   it "finds files using a dirglob when rubygems is not available" do
     expect(loader.find_subcommands_via_dirglob).to include("chef/knife/node_create")
+    loader.find_subcommands_via_dirglob.each_value { |abs_path| expect(abs_path).to match(%r{chef/knife/.+}) }
+  end
+
+  it "excludes chef/knife/version.rb using a dirglob when rubygems is not available" do
+    expect(loader.find_subcommands_via_dirglob).to_not include("chef/knife/version")
     loader.find_subcommands_via_dirglob.each_value { |abs_path| expect(abs_path).to match(%r{chef/knife/.+}) }
   end
 

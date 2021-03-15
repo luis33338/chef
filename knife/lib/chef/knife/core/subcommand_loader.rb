@@ -145,9 +145,13 @@ class Chef
       def find_subcommands_via_dirglob
         # The "require paths" of the core knife subcommands bundled with chef
         files = Dir[File.join(ChefConfig::PathHelper.escape_glob_dir(File.expand_path("../../knife", __dir__)), "*.rb")]
+        version_file_match = /#{Regexp.escape(File.join('chef', 'knife', 'version.rb'))}/
         subcommand_files = {}
         files.each do |knife_file|
           rel_path = knife_file[/#{KNIFE_ROOT}#{Regexp.escape(File::SEPARATOR)}(.*)\.rb/, 1]
+          # Exclude version.rb file for the gem. It's not a knife command, and  force-loading it later
+          # because loaded via in subcommand files generates CLI warnings about its consts already having been defined
+          next if knife_file =~ version_file_match
           subcommand_files[rel_path] = knife_file
         end
         subcommand_files

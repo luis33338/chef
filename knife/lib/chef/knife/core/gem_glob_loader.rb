@@ -59,6 +59,7 @@ class Chef
 
         def find_subcommands_via_rubygems
           files = find_files_latest_gems "chef/knife/*.rb"
+          version_file_match = /#{Regexp.escape(File.join('chef', 'knife', 'version'))}$/
           subcommand_files = {}
           files.each do |file|
 
@@ -71,6 +72,9 @@ class Chef
             # get a LoadError later when we try to require it.
             next if from_different_chef_version?(file)
 
+            # Exclude knife/chef/version. It's not a knife command, and  force-loading
+            # when we load all of these files will emit constant-already-defined warnings
+            next if rel_path =~ version_file_match
             subcommand_files[rel_path] = file
           end
 
