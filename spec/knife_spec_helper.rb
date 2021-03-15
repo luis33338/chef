@@ -26,12 +26,12 @@ $LOAD_PATH.unshift File.expand_path("../../chef-utils/lib", __dir__)
 
 require "rubygems"
 require "rspec/mocks"
-require "rspec/matchers"
 require "rexml/document"
 require "webmock/rspec"
 
 require "chef/knife"
 
+# cwd is knife/
 Dir["lib/chef/knife/**/*.rb"]
   .map { |f| f.gsub("lib/", "") }
   .map { |f| f.gsub(/\.rb$/, "") }
@@ -42,10 +42,6 @@ require "chef/provider_resolver"
 
 require "chef/mixins"
 require "chef/dsl"
-
-# MPTD Hopefully not, this is a mess to unwind:
-# require "chef/application"
-# require "chef/applications"
 
 require "chef/shell"
 require "chef/util/file_edit"
@@ -59,20 +55,27 @@ require "chef/api_client_v1"
 require "chef/mixin/versioned_api"
 require "chef/server_api_versions"
 
+# MPTD relevant for knife?
 if ENV["CHEF_FIPS"] == "1"
   Chef::Config.init_openssl
 end
 
 # If you want to load anything into the testing environment
 # without versioning it, add it to spec/support/local_gems.rb
-# #MPTD needed now?
 require "spec/support/local_gems" if File.exist?(File.join(File.dirname(__FILE__), "support", "local_gems.rb"))
 
 # Explicitly require spec helpers that need to load first
 require "spec/support/platform_helpers"
 require "spec/support/shared/unit/mock_shellout"
-
 require "spec/support/recipe_dsl_helper"
+
+# MPTD - I had to add each of tehese manually, but I'm not clear why they were
+#        _not_ required before splitting the gem.
+require "spec/support/key_helpers"
+require "spec/support/shared/functional/knife"
+require "spec/support/shared/unit/knife_shared"
+require "spec/support/shared/matchers/exit_with_code"
+require "spec/support/shared/matchers/match_environment_variable"
 
 # Autoloads support files
 # Excludes support/platforms by default
@@ -127,6 +130,8 @@ RSpec.configure do |config|
     c.allow_message_expectations_on_nil = false
   end
 
+  # TODO - which if any of these filters apply to knife tests?
+  #
   # Only run these tests on platforms that are also chef workstations
   config.filter_run_excluding :workstation if solaris? || aix?
 
@@ -138,88 +143,14 @@ RSpec.configure do |config|
   config.filter_run_excluding skip_buildkite: true if ENV["BUILDKITE"]
 
   config.filter_run_excluding windows_only: true unless windows?
-  config.filter_run_excluding not_supported_on_windows: true if windows?
-  config.filter_run_excluding not_supported_on_macos: true if macos?
-  config.filter_run_excluding macos_only: true unless macos?
-  config.filter_run_excluding macos_1013: true unless macos_1013?
-  config.filter_run_excluding macos_gte_1014: true unless macos_gte_1014?
-  config.filter_run_excluding not_supported_on_aix: true if aix?
-  config.filter_run_excluding not_supported_on_solaris: true if solaris?
-  config.filter_run_excluding not_supported_on_gce: true if gce?
-  config.filter_run_excluding win2012r2_only: true unless windows_2012r2?
-  config.filter_run_excluding windows64_only: true unless windows64?
-  config.filter_run_excluding windows32_only: true unless windows32?
-  config.filter_run_excluding windows_gte_10: true unless windows_gte_10?
-  config.filter_run_excluding windows_lt_10: true if windows_gte_10?
-  config.filter_run_excluding ruby64_only: true unless ruby_64bit?
-  config.filter_run_excluding ruby32_only: true unless ruby_32bit?
-  config.filter_run_excluding windows_powershell_dsc_only: true unless windows_powershell_dsc?
-  config.filter_run_excluding windows_powershell_no_dsc_only: true if windows_powershell_dsc?
-  config.filter_run_excluding windows_domain_joined_only: true unless windows_domain_joined?
-  config.filter_run_excluding windows_not_domain_joined_only: true if windows_domain_joined?
-  config.filter_run_excluding windows_service_requires_assign_token: true if !STDOUT.isatty && !windows_user_right?("SeAssignPrimaryTokenPrivilege")
-  config.filter_run_excluding solaris_only: true unless solaris?
   config.filter_run_excluding unix_only: true unless unix?
-  config.filter_run_excluding linux_only: true unless linux?
-  config.filter_run_excluding aix_only: true unless aix?
-  config.filter_run_excluding suse_only: true unless suse?
-  config.filter_run_excluding opensuse: true unless opensuse?
-  config.filter_run_excluding debian_family_only: true unless debian_family?
-  config.filter_run_excluding supports_cloexec: true unless supports_cloexec?
-  config.filter_run_excluding selinux_only: true unless selinux_enabled?
-  config.filter_run_excluding requires_root: true unless root?
-  config.filter_run_excluding requires_root_or_running_windows: true unless root? || windows?
-  config.filter_run_excluding requires_unprivileged_user: true if root?
-  config.filter_run_excluding openssl_gte_101: true unless openssl_gte_101?
-  config.filter_run_excluding openssl_lt_101: true unless openssl_lt_101?
-  config.filter_run_excluding aes_256_gcm_only: true unless aes_256_gcm?
-  config.filter_run_excluding broken: true
-  config.filter_run_excluding not_wpar: true unless wpar?
-  config.filter_run_excluding not_supported_under_fips: true if fips?
-  config.filter_run_excluding rhel: true unless rhel?
-  config.filter_run_excluding rhel6: true unless rhel6?
-  config.filter_run_excluding rhel7: true unless rhel7?
-  config.filter_run_excluding rhel8: true unless rhel8?
-  config.filter_run_excluding rhel_gte_8: true unless rhel_gte_8?
-  config.filter_run_excluding intel_64bit: true unless intel_64bit?
-  config.filter_run_excluding not_rhel: true if rhel?
-  config.filter_run_excluding not_rhel6: true if rhel6?
-  config.filter_run_excluding not_rhel7: true if rhel7?
-  config.filter_run_excluding not_intel_64bit: true if intel_64bit?
-
-  # these let us use chef: ">= 13" or ruby: "~> 2.0.0" or any other Gem::Dependency-style constraint
-  config.filter_run_excluding chef: DependencyProc.with(Chef::VERSION)
-  config.filter_run_excluding ruby: DependencyProc.with(RUBY_VERSION)
 
   # check for particular binaries we need
-  config.filter_run_excluding choco_installed: true unless choco_installed?
-  config.filter_run_excluding requires_ifconfig: true unless ifconfig?
-  config.filter_run_excluding pwsh_installed: true unless pwsh_installed?
 
   running_platform_arch = `uname -m`.strip unless windows?
 
   config.filter_run_excluding arch: lambda { |target_arch|
     running_platform_arch != target_arch
-  }
-
-  # Functional Resource tests that are provider-specific:
-  # context "on platforms that use useradd", :provider => {:user => Chef::Provider::User::Useradd}} do #...
-  config.filter_run_excluding provider: lambda { |criteria|
-    type, target_provider = criteria.first
-
-    node = TEST_NODE.dup
-    resource_class = Chef::ResourceResolver.resolve(type, node: node)
-    if resource_class
-      resource = resource_class.new("test", Chef::RunContext.new(node, nil, nil))
-      begin
-        provider = resource.provider_for_action(Array(resource_class.default_action).first)
-        provider.class != target_provider
-      rescue Chef::Exceptions::ProviderNotFound # no provider for platform
-        true
-      end
-    else
-      true
-    end
   }
 
   config.run_all_when_everything_filtered = true
@@ -229,39 +160,18 @@ RSpec.configure do |config|
     # of real connections, so cannot.  we reset it to allow connections every time to avoid
     # tests setting connections to be disabled and that state leaking into other tests.
     WebMock.allow_net_connect!
-
     Chef.reset!
-
     Chef::ChefFS::FileSystemCache.instance.reset!
-
     Chef::Config.reset
-
     Chef::Log.setup!
-
     Chef::ServerAPIVersions.instance.reset!
-
     Chef::Config[:log_level] = :fatal
     Chef::Log.level(Chef::Config[:log_level])
 
     # By default, treat deprecation warnings as errors in tests.
+    # and set environment variable so the setting persists in child processes
     Chef::Config.treat_deprecation_warnings_as_errors(true)
-
-    # Set environment variable so the setting persists in child processes
     ENV["CHEF_TREAT_DEPRECATION_WARNINGS_AS_ERRORS"] = "1"
-
-    # we don't perfectly reset the priority/handler maps here, but by dup'ing the top level hash we
-    # throw away all the garbage resources and providers that we setup.  if we mutate something like
-    # :package then that'll carry over from test-to-test, but the solution would be to deep-dup on every
-    # single test we run which is much more expensive.  by throwing away the garbage top level keys we
-    # significantly speed up test runs.
-    provider_handler_map ||= Chef.provider_handler_map.send(:map).dup
-    resource_handler_map ||= Chef.resource_handler_map.send(:map).dup
-    provider_priority_map ||= Chef.provider_priority_map.send(:map).dup
-    resource_priority_map ||= Chef.resource_priority_map.send(:map).dup
-    Chef.provider_handler_map.instance_variable_set(:@map, provider_handler_map.dup)
-    Chef.resource_handler_map.instance_variable_set(:@map, resource_handler_map.dup)
-    Chef.provider_priority_map.instance_variable_set(:@map, provider_priority_map.dup)
-    Chef.resource_priority_map.instance_variable_set(:@map, resource_priority_map.dup)
   end
 
   # This bit of jankiness guards against specs which accidentally drop privs when running as
@@ -269,6 +179,8 @@ RSpec.configure do |config|
   # condition ever happens.  If a spec stubs Process.[e]uid this can throw a false positive
   # which the spec must work around by unmocking Process.[e]uid to and_call_original in its
   # after block.
+  # Should not be a problem with knife which does not escalate local privs, but
+  # it seems wise to continue to guard against.
   if Process.euid == 0 && Process.uid == 0
     config.after(:each) do
       if Process.uid != 0
@@ -295,7 +207,6 @@ RSpec.configure do |config|
 
   # Protect Rspec from accidental exit(0) causing rspec to terminate without error
   config.around(:example) do |ex|
-
     ex.run
   rescue SystemExit => e
     raise UnexpectedSystemExit.from(e)

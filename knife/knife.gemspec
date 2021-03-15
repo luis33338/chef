@@ -1,19 +1,8 @@
 $:.unshift(File.dirname(__FILE__) + "/lib")
 require_relative "lib/chef/knife/version"
-# vs_path = File.expand_path("chef-utils/lib/chef-utils/version_string.rb", __dir__)
-#
-# if File.exist?(vs_path)
-#   # this is the moral equivalent of a require_relative since bundler makes require_relative here fail hard
-#   eval(IO.read(vs_path))
-# else
-#   # if the path doesn't exist then we're just in the wild gem and not in the git repo
-#   require "chef-utils/version_string"
-# end
-#
+
 Gem::Specification.new do |s|
   s.name = "knife"
-  # TDMP: - making this its own thing for now, it gets a little harder
-  #         to share the version because chef is a dependency.
   s.version = Chef::Knife::VERSION
   s.platform = Gem::Platform::RUBY
   s.extra_rdoc_files = ["README.md", "LICENSE" ]
@@ -57,7 +46,13 @@ Gem::Specification.new do |s|
 
   s.require_paths = %w{ lib }
   s.files = %w{Gemfile Rakefile LICENSE README.md knife.gemspec} +
-    Dir.glob("{lib,spec}/**/*", File::FNM_DOTMATCH).reject { |f| File.directory?(f) }
+    Dir.glob("lib/**/*", File::FNM_DOTMATCH).reject { |f| File.directory?(f) } +
+    Dir.glob("../spec/**/*", File::FNM_DOTMATCH).reject do |f|
+      File.directory?(f) || (
+        !File.path(f).match(/knife*/) &&
+        !File.path(f).match(/spec.data*/)
+      )
+    end
 
   s.metadata = {
     "bug_tracker_uri"   => "https://github.com/chef/chef/issues",
