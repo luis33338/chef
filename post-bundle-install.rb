@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-gem_home = ENV["GEM_HOME"]
+gem_home = RbConfig::CONFIG["default_gem_home"]
 
 puts "fixing bundle installed gems in #{gem_home}"
 
