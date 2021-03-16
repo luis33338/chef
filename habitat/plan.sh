@@ -95,7 +95,7 @@ do_build() {
     build_line "Installing gem dependencies ..."
     bundle install --jobs=3 --retry=3
     build_line "Installing gems from git repos properly ..."
-    ruby ./post-bundle-install.sh
+    ruby ./post-bundle-install.rb
     build_line "Installing this project's gems ..."
     bundle exec rake install
   )
