@@ -1,12 +1,12 @@
 #!/usr/bin/env ruby
 
-install_dir = ARGV.shift
+gem_home = ENV["GEM_HOME"]
 
 # Install gems from git repos.  This makes the assumption that there is a <gem_name>.gemspec and
 # you can simply gem build + gem install the resulting gem, so nothing fancy.  This does not use
 # rake install since we need --conservative --minimal-deps in order to not install duplicate gems.
 #
-Dir["#{install_dir.tr('\\', "/")}/embedded/lib/ruby/gems/*/bundler/gems/*"].each do |gempath|
+Dir["#{gem_home}/bundler/gems/*"].each do |gempath|
   matches = File.basename(gempath).match(/(.*)-[A-Fa-f0-9]{12}/)
   next unless matches
 
