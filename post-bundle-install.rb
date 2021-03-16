@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-gem_home = RbConfig::CONFIG["default_gem_home"]
+gem_home = RbConfig::CONFIG["rubylibdir"]
 
 puts "fixing bundle installed gems in #{gem_home}"
 
