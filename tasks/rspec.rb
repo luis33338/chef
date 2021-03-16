@@ -73,7 +73,7 @@ begin
       desc "Run the specs under spec/#{sub}"
       RSpec::Core::RakeTask.new(sub) do |t|
         t.verbose = false
-        t.rspec_opts = %w{--profile}
+        t.rspec_opts = %w{--profile --format documentation}
         t.pattern = FileList["spec/#{sub}/**/*_spec.rb"]
       end
     end
