@@ -16,6 +16,8 @@ export FORCE_FFI_YAJL="ext"
 export CHEF_LICENSE="accept-no-persist"
 export BUNDLE_GEMFILE="/workdir/Gemfile"
 
+rm -rf vendor
+
 # make sure we have the network tools in place for various network specs
 if [ -f /etc/debian_version ]; then
   touch /etc/network/interfaces
