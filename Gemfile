@@ -45,7 +45,7 @@ end
 
 # Everything except AIX and Windows
 group(:ruby_shadow) do
-  gem "ruby-shadow", platforms: :ruby
+  gem "ruby-shadow", git: "https://github.com/chef/ruby-shadow", branch: "lcg/ruby-3.0", platforms: :ruby
 end
 
 group(:development, :test) do

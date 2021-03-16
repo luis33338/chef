@@ -25,6 +25,13 @@ GIT
       train-core
       wmi-lite (~> 1.0)
 
+GIT
+  remote: https://github.com/chef/ruby-shadow
+  revision: ba25b9349b649435726f1869987657997633c1fb
+  branch: lcg/ruby-3.0
+  specs:
+    ruby-shadow (2.5.0)
+
 PATH
   remote: .
   specs:
@@ -38,7 +45,7 @@ PATH
       diff-lcs (>= 1.2.4, < 1.4.0)
       ed25519 (~> 1.2)
       erubis (~> 2.7)
-      ffi (>= 1.9.25)
+      ffi
       ffi-libarchive (~> 1.0, >= 1.0.3)
       ffi-yajl (~> 2.2)
       highline (>= 1.6.9, < 3)
@@ -74,7 +81,7 @@ PATH
       diff-lcs (>= 1.2.4, < 1.4.0)
       ed25519 (~> 1.2)
       erubis (~> 2.7)
-      ffi (>= 1.9.25)
+      ffi
       ffi-libarchive (~> 1.0, >= 1.0.3)
       ffi-yajl (~> 2.2)
       highline (>= 1.6.9, < 3)
@@ -322,7 +329,6 @@ GEM
       parser (>= 2.7.1.5)
     ruby-prof (1.2.0)
     ruby-progressbar (1.11.0)
-    ruby-shadow (2.5.0)
     ruby2_keywords (0.0.4)
     rubyntlm (0.6.3)
     rubyzip (2.3.0)
@@ -421,6 +427,7 @@ PLATFORMS
   ruby
   x64-mingw32
   x86-mingw32
+  x86_64-darwin-18
 
 DEPENDENCIES
   appbundler
@@ -442,8 +449,8 @@ DEPENDENCIES
   rb-readline
   rspec
   ruby-prof (< 1.3.0)
-  ruby-shadow
+  ruby-shadow!
   webmock
 
 BUNDLED WITH
-   2.1.4
+   2.2.3
