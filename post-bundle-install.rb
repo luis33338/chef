@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-gem_home = RbConfig::CONFIG["rubylibdir"]
+gem_home = Gem.paths.home
 
 puts "fixing bundle installed gems in #{gem_home}"
 
@@ -21,7 +21,7 @@ Dir["#{gem_home}/bundler/gems/*"].each do |gempath|
   # (this is like a shell_out inside of a ruby_block in core chef, you don't use an execute resource inside of a ruby_block or
   # things get really weird and unexpected)
   Dir.chdir(gempath) do
-    system("gem build #{gem_name}.gemspec") or raise "whatever"
-    system("gem install #{gem_name}*.gem --conservative --minimal-deps --no-document") or raise "whatever"
+    system("gem build #{gem_name}.gemspec") or raise "gem build failed"
+    system("gem install #{gem_name}*.gem --conservative --minimal-deps --no-document") or raise "gem install failed"
   end
 end
