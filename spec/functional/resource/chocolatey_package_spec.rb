@@ -45,12 +45,12 @@ describe Chef::Resource::ChocolateyPackage, :windows_only, :choco_installed do
   before(:all) do
     pp ENV["Path"]
     pp ENV["PATH"]
-    old_mixed = ENV["Path"]
-    ENV["Path"] = nil
+    @old_mixed = ENV["Path"]
+    ENV.delete("Path")
   end
 
   after(:all) do
-    ENV["Path"] = old_mixed
+    ENV["Path"] = @old_mixed
   end
 
   context "installing a package" do
