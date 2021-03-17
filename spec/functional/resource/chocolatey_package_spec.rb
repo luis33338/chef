@@ -41,6 +41,20 @@ describe Chef::Resource::ChocolateyPackage, :windows_only, :choco_installed do
     provider
   end
 
+  # Chocolatey really gets confused by ENV['PATH'] existing
+
+  before(:all) do
+    old_mixed = ENV["Path"]
+    old_upper = ENV["PATH"]
+    ENV["Path"] = ENV["PATH"]
+    ENV["PATH"] = nil
+  end
+
+  after(:all) do
+    ENV["Path"] = old_mixed
+    ENV["PATH"] = old_upper
+  end
+
   context "installing a package" do
     after { remove_package }
 
