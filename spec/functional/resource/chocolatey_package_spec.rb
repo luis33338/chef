@@ -41,18 +41,16 @@ describe Chef::Resource::ChocolateyPackage, :windows_only, :choco_installed do
     provider
   end
 
-  # Chocolatey really gets confused by ENV['PATH'] existing
-
+  # mixlib-shellout requires ENV["PATH"] but having both desperately confuses Chocolatey
   before(:all) do
+    pp ENV["Path"]
+    pp ENV["PATH"]
     old_mixed = ENV["Path"]
-    old_upper = ENV["PATH"]
-    ENV["Path"] = ENV["PATH"]
-    ENV["PATH"] = nil
+    ENV["Path"] = nil
   end
 
   after(:all) do
     ENV["Path"] = old_mixed
-    ENV["PATH"] = old_upper
   end
 
   context "installing a package" do
