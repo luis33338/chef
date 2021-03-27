@@ -1,7 +1,11 @@
 ---
-name: 💪 Resource Request
-about: I have a suggestion for a new resource in Chef (and may want to implement it 🙌)!
-labels: "Status: Untriaged"
+name: "\U0001F4AA Resource Request"
+about: "I have a suggestion for a new resource in Chef (and may want to implement
+  it \U0001F64C)!"
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 ### Core Chef Resource Checklist
