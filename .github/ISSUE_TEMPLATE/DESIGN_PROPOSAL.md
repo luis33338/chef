@@ -1,7 +1,10 @@
 ---
 name: Design Proposal
 about: I have a significant change I would like to propose and discuss before starting
-labels: "Status: Untriaged"
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 ### When a Change Needs a Design Proposal

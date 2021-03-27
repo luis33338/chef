@@ -1,6 +1,10 @@
 ---
-name: 🤗 Support Question
-about: If you have a question 💬, please check out our Slack!
+name: "\U0001F917 Support Question"
+about: "If you have a question \U0001F4AC, please check out our Slack!"
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 We use GitHub issues to track bugs and feature requests. If you need help please post to our Mailing List or join the Chef Community Slack.
